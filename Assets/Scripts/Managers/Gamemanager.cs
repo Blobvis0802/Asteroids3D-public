@@ -103,6 +103,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void AddLives(int amount)
+    {
+        currentLives += amount;
+
+        if (currentLives > lifeIcons.Length)
+            currentLives = lifeIcons.Length;
+
+        UpdateLivesUI();
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {

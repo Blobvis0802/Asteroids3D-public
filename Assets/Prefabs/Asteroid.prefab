@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1372410600411879085}
   - component: {fileID: 1840983442546248456}
   - component: {fileID: 7510468503490944964}
+  - component: {fileID: 45102678017696538}
   m_Layer: 6
   m_Name: Asteroid
   m_TagString: Asteroid
@@ -160,6 +161,26 @@ MonoBehaviour:
   explosionForce: 5
   explosionRadius: 1
   sizeClass: 0
+--- !u!114 &45102678017696538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139506161004054628}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bf1cd28087a92f4ba451cbefd19daf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsteroidPickupDropper
+  pickupDrops:
+  - pickupPrefab: {fileID: 8981825668729614988, guid: d9a4761d3cb65884f893c689cfe13e8c, type: 3}
+    dropChance: 25
+  - pickupPrefab: {fileID: 8981825668729614988, guid: 9cd7d7de61a69bf48bcf19aaddf66e0b, type: 3}
+    dropChance: 15
+  - pickupPrefab: {fileID: 8981825668729614988, guid: e6b900187b5e82042976b840e46f8dd4, type: 3}
+    dropChance: 60
+  overallDropChance: 25
 --- !u!1 &7440810515333126962
 GameObject:
   m_ObjectHideFlags: 0

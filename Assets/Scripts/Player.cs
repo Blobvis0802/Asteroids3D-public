@@ -17,6 +17,10 @@ public class Player : MonoBehaviour
 
     private bool mouseSteering;
 
+    [Header("Power Surge")]
+    private bool powerSurgeActive = false;
+    private float powerSurgeTimer = 0f;
+
     [Header("Invincibility Settings")]
     private bool isImmune = false;
     private float immuneTimer = 0f;
@@ -65,25 +69,35 @@ public class Player : MonoBehaviour
         if (Time.timeScale <= 0f)
             return;
 
-        // --- Thruster emission toggle ---
+        // --- Thruster ---
         if (thruster != null)
         {
             var emission = thruster.emission;
             emission.enabled = FwInput > 0f;
         }
 
-        // --- Shooting ---
-        cooldownTimer -= Time.deltaTime;
+        // --- Handle Power Surge ---
+        HandlePowerSurge();
+
+        // --- Shooting cooldown ---
+        if (!powerSurgeActive)
+        {
+            cooldownTimer -= Time.deltaTime;
+        }
 
         bool shootInput =
             mouseSteering ?
             Mouse.current.leftButton.wasPressedThisFrame :
             Keyboard.current.spaceKey.wasPressedThisFrame;
 
-        if (shootInput && cooldownTimer <= 0f)
+        if (shootInput && (powerSurgeActive || cooldownTimer <= 0f))
         {
             Shoot();
-            cooldownTimer = shootCooldown;
+
+            if (!powerSurgeActive)
+            {
+                cooldownTimer = shootCooldown;
+            }
         }
 
         // --- Invincibility flicker ---
@@ -101,7 +115,6 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        // --- Stop movement if paused ---
         if (Time.timeScale <= 0f)
             return;
 
@@ -212,5 +225,35 @@ public class Player : MonoBehaviour
     public bool IsInvincible()
     {
         return isImmune;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Pickup pickup = other.GetComponent<Pickup>();
+
+        if (pickup != null)
+        {
+            pickup.Activate(this);
+        }
+    }
+
+    // POWER SURGE FUNCTIONS
+
+    public void StartPowerSurge(float duration)
+    {
+        powerSurgeActive = true;
+        powerSurgeTimer = duration;
+    }
+
+    private void HandlePowerSurge()
+    {
+        if (!powerSurgeActive) return;
+
+        powerSurgeTimer -= Time.deltaTime;
+
+        if (powerSurgeTimer <= 0f)
+        {
+            powerSurgeActive = false;
+        }
     }
 }
