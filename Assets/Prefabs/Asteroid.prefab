@@ -174,13 +174,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AsteroidPickupDropper
   pickupDrops:
-  - pickupPrefab: {fileID: 8981825668729614988, guid: d9a4761d3cb65884f893c689cfe13e8c, type: 3}
-    dropChance: 25
-  - pickupPrefab: {fileID: 8981825668729614988, guid: 9cd7d7de61a69bf48bcf19aaddf66e0b, type: 3}
-    dropChance: 15
   - pickupPrefab: {fileID: 8981825668729614988, guid: e6b900187b5e82042976b840e46f8dd4, type: 3}
-    dropChance: 60
-  overallDropChance: 25
+    dropChance: 50
+  - pickupPrefab: {fileID: 8981825668729614988, guid: d9a4761d3cb65884f893c689cfe13e8c, type: 3}
+    dropChance: 20
+  - pickupPrefab: {fileID: 8981825668729614988, guid: 9cd7d7de61a69bf48bcf19aaddf66e0b, type: 3}
+    dropChance: 10
+  - pickupPrefab: {fileID: 8981825668729614988, guid: e6b900187b5e82042976b840e46f8dd4, type: 3}
+    dropChance: 30
+  overallDropChance: 35
 --- !u!1 &7440810515333126962
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,11 +15,13 @@ public class Player : MonoBehaviour
     [SerializeField] private Transform bulletSpawnPoint;
     public float shootCooldown = 0.3f;
 
-    private bool mouseSteering;
-
     [Header("Power Surge")]
     private bool powerSurgeActive = false;
     private float powerSurgeTimer = 0f;
+    [SerializeField] private float powerSurgeFireRate = 0.15f; // auto-fire delay during Power Surge
+    private float powerSurgeCooldownTimer = 0f;
+
+    private bool mouseSteering;
 
     [Header("Invincibility Settings")]
     private bool isImmune = false;
@@ -33,6 +35,10 @@ public class Player : MonoBehaviour
 
     [Header("Thruster Particle")]
     [SerializeField] private ParticleSystem thruster;
+
+    [Header("Shoot Particle")]
+    [SerializeField] private ParticleSystem shootParticlesPrefab; // assign prefab here
+    [SerializeField] private int shootParticleBurst = 15;
 
     private float cooldownTimer = 0f;
     private float LInput, RInput, FwInput, BrakeInput;
@@ -52,51 +58,51 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        // --- Pull latest settings from SettingsManager ---
         if (SettingsManager.Instance != null)
         {
             mouseSteering = SettingsManager.Instance.MouseAim;
             turnSpeed = SettingsManager.Instance.TurnSpeed;
         }
 
-        // --- Input ---
         LInput = Mathf.Max(Keyboard.current.aKey.ReadValue(), Keyboard.current.leftArrowKey.ReadValue());
         RInput = Mathf.Max(Keyboard.current.dKey.ReadValue(), Keyboard.current.rightArrowKey.ReadValue());
         FwInput = Mathf.Max(Keyboard.current.wKey.ReadValue(), Keyboard.current.upArrowKey.ReadValue());
         BrakeInput = Mathf.Max(Keyboard.current.sKey.ReadValue(), Keyboard.current.downArrowKey.ReadValue());
 
-        // --- STOP INPUT IF GAME IS PAUSED ---
         if (Time.timeScale <= 0f)
             return;
 
-        // --- Thruster ---
         if (thruster != null)
         {
             var emission = thruster.emission;
             emission.enabled = FwInput > 0f;
         }
 
-        // --- Handle Power Surge ---
         HandlePowerSurge();
 
-        // --- Shooting cooldown ---
         if (!powerSurgeActive)
         {
             cooldownTimer -= Time.deltaTime;
         }
 
-        bool shootInput =
-            mouseSteering ?
-            Mouse.current.leftButton.wasPressedThisFrame :
-            Keyboard.current.spaceKey.wasPressedThisFrame;
+        bool shootInput = mouseSteering ? Mouse.current.leftButton.wasPressedThisFrame : Keyboard.current.spaceKey.wasPressedThisFrame;
+        bool shootHeld = mouseSteering ? Mouse.current.leftButton.isPressed : Keyboard.current.spaceKey.isPressed;
 
-        if (shootInput && (powerSurgeActive || cooldownTimer <= 0f))
+        // --- Manual fire ---
+        if (shootInput && !powerSurgeActive && cooldownTimer <= 0f)
         {
             Shoot();
+            cooldownTimer = shootCooldown;
+        }
 
-            if (!powerSurgeActive)
+        // --- Power Surge auto-fire ---
+        if (powerSurgeActive && shootHeld)
+        {
+            powerSurgeCooldownTimer -= Time.deltaTime;
+            if (powerSurgeCooldownTimer <= 0f)
             {
-                cooldownTimer = shootCooldown;
+                Shoot();
+                powerSurgeCooldownTimer = powerSurgeFireRate;
             }
         }
 
@@ -151,14 +157,25 @@ public class Player : MonoBehaviour
 
     void Shoot()
     {
+        // Spawn bullet
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
         Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
         bulletRb.linearVelocity = bulletSpawnPoint.forward * 20f;
 
+        // Play audio
         if (audioSource != null && blasterClip != null)
         {
             audioSource.pitch = Random.Range(0.7f, 1.2f);
             audioSource.PlayOneShot(blasterClip);
+        }
+
+        // Spawn particle burst as a child of the player, aligned correctly
+        if (shootParticlesPrefab != null)
+        {
+            ParticleSystem ps = Instantiate(shootParticlesPrefab, bulletSpawnPoint.position, Quaternion.identity, transform);
+            ps.transform.localRotation = Quaternion.identity; // align with player forward
+            ps.Emit(shootParticleBurst);
+            Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
         }
     }
 
@@ -237,12 +254,11 @@ public class Player : MonoBehaviour
         }
     }
 
-    // POWER SURGE FUNCTIONS
-
     public void StartPowerSurge(float duration)
     {
         powerSurgeActive = true;
         powerSurgeTimer = duration;
+        powerSurgeCooldownTimer = 0f; // start immediately
     }
 
     private void HandlePowerSurge()
